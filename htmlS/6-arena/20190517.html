@@ -1,0 +1,390 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>競技場計算器</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<link rel="stylesheet" type="text/css" href="../../css/style3.css" />
+<style>
+.remark{font-size:80%;}
+td {text-align:left;}
+</style>
+<script type="text/javascript" charset="UTF-8">
+//結束時間
+var time_end = new Date("08/11/2019 23:59:59 GMT+0800").getTime();
+var ymd = '190811';
+//開始時間
+var time_start = new Date("04/10/2019 5:00:00 GMT+0800").getTime();
+//部件類別
+var type = [
+	'特殊·翅膀','手持','妝容·瞳孔','手套','設計師之影','真我復甦','升2級(記憶迴響*1)','升3級(記憶迴響*2)','升4級(記憶迴響*3)','升5級(記憶迴響*5)','連身裙','妝容·唇色','鞋子','特殊·頸飾','妝容·底妝','頭髮','襪子','妝容·眉毛','耳飾',
+];
+//部件名稱
+var cname = ['記憶殘翼','溫柔禱歌','蝴蝶之夢','纏繞愛恨','墨丘利·精靈哀歌','精靈哀歌*1','精靈哀歌*1','精靈哀歌*2','精靈哀歌*3','精靈哀歌*5','夢與蝶之吻','輕吟悲歌','精靈枷鎖','月光束縛','殘翼','沉默的記憶','歲月糾纏','清淺傷痕','精靈之淚',
+];
+//需要段位
+var creq = ['第5001-10000名','顛覆未來之王3星','顛覆未來之王2星','顛覆未來之王1星','顛覆未來之王1星','顛覆未來之王1星','顛覆未來之王1星','顛覆未來之王1星','顛覆未來之王1星','顛覆未來之王1星','靈感重構大師3星','靈感重構大師2星','靈感重構大師1星','記憶創造者3星','記憶創造者2星','記憶創造者1星','自由搭配師3星','自由搭配師2星','自由搭配師1星'];
+//套裝名稱
+var set = ['精靈哀歌'];
+//單價
+var need = [1188,792,528,528,1500,750,750,1500,2250,3750,990,264,528,330,198,528,264,165,198
+];
+//每套部件數量
+var setCnt = [19];
+//禮包名字
+var pack = ['鑰匙禮包','稀有鑰匙','普通鑰匙'];
+//禮包價格
+var packNeed = [10,10,4];
+//禮包最大購買數
+var packMax = [10,15,50];
+//道具名稱
+var item_name = '禮讚之花';
+//買一次花費鑽石
+var price=10;
+//每天免費次數
+var free_1day = 5;
+//贏
+var win = 5;
+//輸
+var lose = 3;
+//段位名字
+var weekly_name = [
+'第1名',
+'第2名',
+'第3名',
+'4-50名',
+'51-100名',
+'101-200名',
+'201-500名',
+'501-1000名',
+'1001-2000名',
+'2001-3000名',
+'3001-5000名',
+'5001-10000名',
+'顛覆未來之王3星',
+'顛覆未來之王2星',
+'顛覆未來之王1星',
+'靈感重構大師3星',
+'靈感重構大師2星',
+'靈感重構大師1星',
+'記憶創造者3星',
+'記憶創造者2星',
+'記憶創造者1星',
+'自由搭配師3星',
+'自由搭配師2星',
+'自由搭配師1星',
+'初心學徒'
+];
+//段位獎勵
+var weeklyNum = [600,580,560,520,480,440,400,360,320,280,240,200,150,140,130,120,110,90,80,70,60,50,40,30,20];
+//段位提升名字
+var topup=['永恒的傳奇','顛覆未來之王3星','顛覆未來之王2星','顛覆未來之王1星','靈感重構大師3星','靈感重構大師2星','靈感重構大師1星','記憶創造者3星','記憶創造者2星','記憶創造者1星','自由搭配師3星','自由搭配師2星','自由搭配師1星','初心學徒'];
+//段位提升獎勵數(每檔)
+var topup_gain=[200,100,100,100,80,80,80,50,50,50,30,30,30,0];
+//影之召喚升級
+var skillLv = ['2級(1個)','3級(3個)','4級(6個)','5級(11個)'];
+//影之召喚升級需求(累計)
+var skillUp = [1,3,6,11];
+
+//==========參數設置完畢==========//
+
+
+var own=[];
+var packNum = [];
+var time_d;
+var time_w;
+var topup_index = function(){
+	var ret = [];
+	for (var i=0; i<topup_gain.length; i++){
+		ret.unshift(i);
+	}
+	return ret;
+}();
+
+window.onload = function(){
+	init();
+	default_setting();
+	calc();
+};
+
+function init(){
+	var table = '<table border="1">';
+	table += tr(td('套裝')+td('部位')+td('名稱')+td('所需'));
+	table += tr(td('*勾選代表已有/不需要部件','colspan="4" class="remark"'));
+	var pos = 0;
+	for (var s in set){
+		var line = td('<label><input type="checkbox" id="all'+s+'" onclick=checkall('+s+') >'+set[s]+'</label>');
+		var cell1 = ''; var cell2 = ''; var cell3 = '';
+		for (i=pos;i<pos+setCnt[s];i++){
+			cell2+='<label><input type="checkbox" id="own'+i+'" onclick=calc() >'+cname[i]+'</label><br>';
+			cell1+=type[i]+'<br>';
+			cell3+='&emsp;'+need[i]+'<br>';
+		}
+		pos += setCnt[s];
+		line += td(cell1,'style="border-right-width:0"')+td(cell2,'style="border-left-width:0;border-right-width:0"')+td(cell3,'style="border-left-width:0"');
+		//line+=td(cell1,'style="border-right-width:0"')+td(cell2,'style="border-left-width:0"');
+		table += tr(line);
+	}
+	table += tr(td('*每周購買禮包','colspan="4" class="remark"'));
+	var cell1 = []; var cell2 = []; var cell3 = [];
+	for (i=0; i<pack.length; i++){
+		cell1.push(pack[i]);
+		cell2.push(inputBox('pack'+i,'calc()',2) + '個');
+		cell3.push('<span id="packNeed'+i+'">' + packNeed[i] + '</span>');
+	}
+	for (i=0; i<cell1.length; i++){
+		table += tr(td(cell1[i])+td(cell2[i])+td(cell3[i],'colspan="2"'),'class="noinner' + (i==0?'':' notop') + (i==cell1.length-1?'':' nobottom') +'"');
+	}
+	table += '</table>';
+	document.getElementById("table").innerHTML = table;
+	
+	var input = '<table border="0" class="noinner">' + tr(td(''),'style="display:none"');
+	input += tr(td('當前'+item_name+'：') + td(inputBox('current','calc()',5)+'個'));
+	input += tr(td('平均結算段位：') + td(selectBox('weekly','calc()',weeklyNum,weekly_name)));
+	input += tr(td('今日剩餘免費：') + td(inputBox('remain_today','calc()',3)+'次'));
+	input += tr(td('今日還可購買：') + td(inputBox('remain_buy_today','calc()',3)+'次'));
+	input += tr(td('預計勝率：') + td(inputBox('pct_exp','calc()',3)+'%'));
+	input += tr(td('計劃最高段位：') + td(selectBox('topupPlan','calc()',topup_index,topup)));
+	input += tr(td('已達最高段位：') + td(selectBox('topupAlready','calc()',topup_index,topup)));
+	input += '</table>';
+	document.getElementById("input").innerHTML = input;
+	
+    var remark = '<table border="1">';
+	remark += '<tr><td>注意事項</td></tr>';
+	remark += '<tr><td>賽季結束日的免費次數有計算在內</td></tr>';
+	remark += '<tr id="creq" style="display:none"><td></td></tr>';
+	remark += '</table>';
+	document.getElementById("remark").innerHTML = remark;
+
+ }
+function default_setting(){
+	var date_now = new Date();
+	var time_now = date_now.getTime();
+	time_d = Math.max(0,Math.floor((time_end-time_now)/1000/60/60/24));
+	time_w = Math.max(0,Math.floor((time_end-time_now)/1000/60/60/24/7));
+	var time_h = Math.max(0,Math.floor((time_end-time_now)/1000/60/60)%24);
+	var time_m = Math.max(0,Math.floor((time_end-time_now)/1000/60)%60);
+	var time_s = Math.max(0,Math.floor((time_end-time_now)/1000)%60);
+	var timeEndDate = new Date(time_end);
+	var y = timeEndDate.getFullYear();
+	var m = timeEndDate.getMonth() + 1;
+	var d = timeEndDate.getDate();
+	var adjustedDate = new Date(time_now + time_w*7*24*60*60*1000);
+	var todayDay = date_now.getDay();
+	var adjustedDays = 6 - todayDay;
+	var settleDate = new Date(time_now + (time_w*7 + adjustedDays) *24*60*60*1000);
+	var ys = settleDate.getFullYear();
+	var ms = settleDate.getMonth() + 1;
+	var ds = settleDate.getDate();
+	var settleDate21 = new Date(ms + '/' + ds + '/' + ys + ' 21:00:00 GMT+0800'); //周六21點結算
+	if (settleDate21<timeEndDate && settleDate21>adjustedDate) time_w += 1;
+	document.getElementById("showTime").innerHTML =  y + '-' + m + '-' + d + '　還有' + time_d + "天，" + time_w + '次結算';
+	for (var i=0; i<pack.length; i++) setVal("pack"+i, 0);
+	setVal('current', 0);
+	setVal("remain_today", 0);
+	setVal("remain_buy_today", 0);
+	setVal('pct_exp', 100);
+}
+
+function checkall(n){
+	var pos=0;
+	for (i=0;i<n;i++){
+		pos+=setCnt[i];
+	}
+	if (document.getElementById('all'+n).checked){
+		for (i=pos;i<pos+setCnt[n];i++){
+			document.getElementById('own'+i).checked=true;
+		}
+	}else{
+		for (i=pos;i<pos+setCnt[n];i++){
+			document.getElementById('own'+i).checked=false;
+		}
+	};
+	calc();
+}
+
+function calc(){
+	
+	for (var i=0; i<pack.length; i++) {
+		checkMax('pack'+i, packMax[i]);
+		packNum[i] = getVal('pack'+i);
+		document.getElementById("packNeed"+i).innerHTML = packNeed[i] * packNum[i] + (packNum[i]>0 ? '×' + time_w : '');
+	}
+	var current = Math.max(0,getVal('current'));
+	var weekly = getVal('weekly');
+	var remain_today = checkMax('remain_today', 5);
+	var remain_buy_today = checkMax('remain_buy_today', 10);
+	var pct_exp = checkMax('pct_exp', 100);
+	var topupAlready=getVal('topupAlready');
+	var topupPlan=getVal('topupPlan');
+	
+	for (i=0; i<need.length; i++){
+		if (document.getElementById('own'+i).checked) own[i]=1;
+		else own[i]=0;
+	}
+	
+	var aim = 0;
+	for(i=0; i<need.length; i++) {
+		aim+=need[i]*(1-own[i]);
+	}
+	for(i=0; i<packNeed.length; i++) {
+		aim += packNeed[i] * packNum[i] * time_w;
+	}
+	
+	var future = 0;
+	for (i=0; i<topup_index.length; i++) {
+		if(topup_index[i]>topupAlready&&topup_index[i]<=topupPlan){
+			future += topup_gain[i];
+		}
+	}
+	
+	var free_times = time_d * free_1day + remain_today;
+	var win_times = Math.floor(free_times*pct_exp/100);
+	var winLose = win * win_times + lose * (free_times-win_times);
+	var weekSettle = weekly*time_w;
+	var free = winLose + weekSettle + future;
+	
+	var rem = Math.max(0,aim - free - current);
+	var exp = win*pct_exp/100 + lose*(1-pct_exp/100);
+	var times = Math.ceil(rem/exp);
+	
+	var canAchieve = true;
+	var everyDay = Math.round(Math.max(0,times-remain_buy_today)/time_d*10)/10;
+	if (everyDay>10) canAchieve = false;
+	
+	var to_pay = times*price;
+	
+	var calcres='<table>'+tr(td('計算結果'));
+	calcres+=tr(td('共需'+aim+'個'+item_name));
+	calcres+=tr(td('免費'+free+'個'+item_name));
+	calcres+=tr(td('（挑戰獎勵'+winLose+'，周結算'+weekSettle+'，段位提升'+future+'）'));
+	calcres+=tr(td('還差'+rem+'個'+item_name+'，需購買'+times+'次'));
+	calcres+=tr(td('賽季結束前<b>' + (canAchieve?'可以':'不能') + '</b>兌換完所有部件'+(canAchieve?'':'，請調整目標需求')));
+	if (canAchieve) calcres+=tr(td((remain_buy_today>0&&times>0 ? '今日買'+Math.min(remain_buy_today,times)+'次後，' :'') + '平均每天需購買'+everyDay+'次'));
+	if (canAchieve) calcres+=tr(td('花鑽'+to_pay+'個'));
+	calcres+='</table>';
+	document.getElementById("calcres").innerHTML = calcres;
+
+	//compare weekly vs creq
+	var weeklyInd = weeklyNum.indexOf(weekly);
+	var creqOut = '';
+	for(var i=0; i<creq.length; i++){
+		if(weekly_name.indexOf(creq[i])<weeklyInd&&!own[i]){
+			creqOut += cname[i] + '(' + type[i] + ')需结算達到' + creq[i] + '<br>';
+		}
+	}
+	if (creqOut){
+		document.getElementById("creq").innerHTML = td(creqOut);
+		document.getElementById("creq").style.display = "table-row";
+	} else {
+		document.getElementById("creq").innerHTML = td('');
+		document.getElementById("creq").style.display = "none";
+	}
+}
+
+function checkMax(boxName, maxVal){
+	var val = getVal(boxName);
+	if (val>maxVal){
+		setVal(boxName, maxVal);
+		return maxVal;
+	} else if (val<0){
+		setVal(boxName, 0);
+		return 0;
+	}
+	return val;
+}
+
+function loadSettings(){
+	if (typeof(Storage) !== "undefined" && localStorage.getItem("shineJJC_"+ymd)) {
+		var loadString = localStorage.getItem("shineJJC_"+ymd);
+		
+		var own_str = getStoredStr(loadString, 'own').split(',');
+		for (i=0;i<need.length;i++) {if(own_str[i]>0) {document.getElementById("own"+i).checked=true;}}
+		
+		var packNum_str = getStoredStr(loadString, 'packNum').split(',');
+		for (i=0;i<pack.length;i++) {setVal("pack"+i, packNum_str[i]);}
+		
+		//setPlainTextStoredStr(loadString, 'skillLv');
+		setPlainTextStoredStr(loadString, 'current');
+		setPlainTextStoredStr(loadString, 'weekly');
+		setPlainTextStoredStr(loadString, 'remain_today');
+		setPlainTextStoredStr(loadString, 'remain_buy_today');
+		setPlainTextStoredStr(loadString, 'pct_exp');
+		setPlainTextStoredStr(loadString, 'topupPlan');
+		setPlainTextStoredStr(loadString, 'topupAlready');
+
+		calc();
+	}
+}
+function getStoredStr(string, id){
+	var start = string.indexOf(id+':[')+(id+':[').length;
+	return string.substr(start,string.substr(start).indexOf('];'));
+}
+function setPlainTextStoredStr(string, id){
+	var tmp = getStoredStr(string, id);
+	setVal(id, tmp);
+}
+function saveSettings(){
+	var saveString = 'own:['+own.join(',')+'];packNum:['+packNum.join(',')+'];current:['+getVal('current')+'];weekly:['+getVal('weekly')+'];remain_today:['+getVal('remain_today')+'];remain_buy_today:['+getVal('remain_buy_today')+'];pct_exp:['+getVal('pct_exp')+'];topupPlan:['+getVal('topupPlan')+'];topupAlready:['+getVal('topupAlready')+'];';
+	//own:[1,1,0,0,0];
+	if (typeof(Storage) !== "undefined") {
+		localStorage.setItem("shineJJC_"+ymd, saveString);
+	}
+	document.getElementById('storage').innerHTML = saveString;
+}
+
+function getVal(id){
+	return noNaN(parseInt(document.getElementById(id).value));
+}
+function setVal(id,val){
+	document.getElementById(id).value=val;
+}
+function noNaN( n ) {
+	return isNaN( n ) ? 0 : n;
+}
+function td(text,attr){
+	return '<td'+(attr?' '+attr:'')+'>'+text+'</td>';
+}
+function tr(text,attr){
+	return '<tr'+(attr?' '+attr:'')+'>'+text+'</tr>';
+}
+function inputBox(id,onchange,size){
+	return '<input type="text" id="'+id+'" onkeyup='+onchange+(size?' size="'+size+'"':'')+'>';
+}
+function selectBox(id,onchange,valArr,textArr){
+	var ret='<select id="'+id+'" onchange='+onchange+'>';
+	if(!textArr) textArr=valArr;
+	for (var i in valArr){
+		ret+='<option value="'+valArr[i]+'">'+textArr[i]+'</option>';
+	}
+	ret+='</select>';;
+	return ret;
+}
+</script>
+
+</head>
+
+<body>
+<div class="sixteen columns">
+<div class="h-border">
+<div class="heading">
+<h1>競技場計算器</h1>
+</div>
+</div>
+</div>
+<p><strong>更新時間：</strong>2019.05.07<br/><strong>原作者：</strong>Rean翎<br/>
+<strong>繁體化：</strong>莫默墨陌、米琳<br/>
+<strong>使用說明：</strong><br>
+1.升2級表示從1→2需要1個，升3級表示從2→3需要3個，以此類推。若只要升到3級，把升4級、升5級打勾即可。
+</p>
+<hr/>
+<p align="center">距離賽季結束日期：　<span id="showTime"></span><br>
+<button onclick="saveSettings()">保存設置</button><button onclick="loadSettings()">讀取設置</button>
+</p>
+<p id="table" align="center"></p>
+<p id="input" align="center"></p>
+<p id="calcres" align="center"></p>
+<p id="remark" align="center"></p>
+<p id="storage" style="display:none"></p>
+</body>
+</html>
