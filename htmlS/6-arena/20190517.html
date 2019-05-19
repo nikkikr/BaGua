@@ -11,7 +11,7 @@ td {text-align:left;}
 </style>
 <script type="text/javascript" charset="UTF-8">
 //結束時間
-var time_end = new Date("08/11/2019 23:59:59 GMT+0800").getTime();
+var time_end = new Date("08/11/2019 11:59:59 GMT+0800").getTime();
 var ymd = '190811';
 //開始時間
 var time_start = new Date("04/10/2019 5:00:00 GMT+0800").getTime();
@@ -151,7 +151,7 @@ function init(){
 	
     var remark = '<table border="1">';
 	remark += '<tr><td>注意事項</td></tr>';
-	remark += '<tr><td>賽季結束日的免費次數有計算在內</td></tr>';
+	remark += '<tr><td>賽季結束日的免費次數不計算在內</td></tr>';
 	remark += '<tr id="creq" style="display:none"><td></td></tr>';
 	remark += '</table>';
 	document.getElementById("remark").innerHTML = remark;
